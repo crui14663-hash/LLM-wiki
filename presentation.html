@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>健身與飲食入門指南</title>
+<style>
+  /* ── Reset & Base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent:   #2563eb;
+    --accent2:  #16a34a;
+    --warn:     #dc2626;
+    --amber:    #d97706;
+    --bg:       #0f172a;
+    --surface:  #1e293b;
+    --surface2: #334155;
+    --text:     #f1f5f9;
+    --muted:    #94a3b8;
+    --border:   #475569;
+    --pill-h:   #dbeafe;
+    --pill-m:   #dcfce7;
+    --pill-low: #fef9c3;
+  }
+
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+
+  body {
+    font-family: 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── Progress bar ── */
+  #progress-wrap {
+    position: fixed; top: 0; left: 0; width: 100%; height: 4px;
+    background: var(--surface2); z-index: 100;
+  }
+  #progress-bar {
+    height: 100%; background: var(--accent);
+    transition: width .35s ease;
+  }
+
+  /* ── Slide counter ── */
+  #counter {
+    position: fixed; top: 10px; right: 18px;
+    font-size: .78rem; color: var(--muted); z-index: 100;
+    letter-spacing: .04em;
+  }
+
+  /* ── Slide viewport ── */
+  #viewport {
+    width: 100%; height: 100%;
+    position: relative; overflow: hidden;
+  }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 48px 80px;
+    opacity: 0; pointer-events: none;
+    transform: translateX(60px);
+    transition: opacity .4s ease, transform .4s ease;
+  }
+  .slide.active {
+    opacity: 1; pointer-events: auto; transform: translateX(0);
+  }
+  .slide.exit-left {
+    opacity: 0; transform: translateX(-60px);
+  }
+
+  /* ── Slide variants ── */
+  .slide-cover {
+    background: radial-gradient(ellipse at 30% 40%, #1d4ed8 0%, #0f172a 65%);
+    text-align: center;
+  }
+  .slide-cover .kicker {
+    font-size: .9rem; letter-spacing: .15em; color: #93c5fd;
+    text-transform: uppercase; margin-bottom: 18px;
+  }
+  .slide-cover h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800;
+    line-height: 1.2; color: #fff; margin-bottom: 20px;
+  }
+  .slide-cover .subtitle {
+    font-size: 1.1rem; color: #cbd5e1; max-width: 600px; line-height: 1.6;
+  }
+
+  .slide-section {
+    background: radial-gradient(ellipse at 70% 60%, #164e63 0%, #0f172a 65%);
+    text-align: center;
+  }
+  .slide-section .section-num {
+    font-size: .85rem; letter-spacing: .12em; color: #67e8f9;
+    text-transform: uppercase; margin-bottom: 14px;
+  }
+  .slide-section h2 {
+    font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 700; color: #fff;
+    margin-bottom: 14px;
+  }
+  .slide-section .section-desc {
+    color: #94a3b8; font-size: 1rem; max-width: 500px; line-height: 1.6;
+  }
+
+  /* ── Content slide ── */
+  .content-wrap {
+    width: 100%; max-width: 860px;
+  }
+  .slide-title {
+    font-size: clamp(1.3rem, 3vw, 1.9rem); font-weight: 700;
+    color: #fff; margin-bottom: 28px; line-height: 1.3;
+  }
+  .slide-title span { color: #60a5fa; }
+
+  /* Cards row */
+  .cards {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    width: 100%;
+  }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px 18px;
+  }
+  .card .card-icon { font-size: 1.8rem; margin-bottom: 10px; }
+  .card h3 { font-size: 1rem; font-weight: 700; color: #e2e8f0; margin-bottom: 6px; }
+  .card p  { font-size: .88rem; color: var(--muted); line-height: 1.55; }
+
+  /* Highlight box */
+  .highlight {
+    background: var(--surface); border-left: 4px solid var(--accent);
+    border-radius: 10px; padding: 18px 20px; margin-bottom: 18px;
+    font-size: .95rem; line-height: 1.65; color: #e2e8f0;
+  }
+  .highlight.green  { border-color: var(--accent2); }
+  .highlight.amber  { border-color: var(--amber); }
+  .highlight.red    { border-color: var(--warn); }
+
+  /* Number grid */
+  .num-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 14px; margin-top: 6px;
+  }
+  .num-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 14px; text-align: center;
+  }
+  .num-card .num {
+    font-size: 1.9rem; font-weight: 800; color: #60a5fa; line-height: 1;
+    margin-bottom: 6px;
+  }
+  .num-card .label { font-size: .82rem; color: var(--muted); line-height: 1.4; }
+
+  /* Step list */
+  .steps { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .steps li {
+    display: flex; align-items: flex-start; gap: 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 16px;
+  }
+  .steps li .step-num {
+    min-width: 32px; height: 32px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .85rem; font-weight: 700; margin-top: 1px;
+  }
+  .steps li .step-body h4 { font-size: .95rem; font-weight: 700; color: #e2e8f0; }
+  .steps li .step-body p  { font-size: .85rem; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+
+  /* Table */
+  table {
+    width: 100%; border-collapse: collapse;
+    font-size: .88rem; border-radius: 10px; overflow: hidden;
+  }
+  thead tr { background: var(--accent); }
+  thead th { padding: 10px 14px; text-align: left; color: #fff; font-weight: 600; }
+  tbody tr:nth-child(odd)  { background: var(--surface); }
+  tbody tr:nth-child(even) { background: var(--surface2); }
+  tbody td { padding: 9px 14px; color: #e2e8f0; line-height: 1.4; }
+  .tag { display: inline-block; border-radius: 20px; padding: 2px 10px; font-size: .78rem; font-weight: 600; }
+  .tag-h { background: #1e3a8a; color: #93c5fd; }
+  .tag-m { background: #14532d; color: #86efac; }
+  .tag-w { background: #7c2d12; color: #fca5a5; }
+
+  /* Myth vs Fact */
+  .myth-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .myth-box, .fact-box {
+    border-radius: 12px; padding: 18px 16px;
+  }
+  .myth-box { background: #450a0a; border: 1px solid #991b1b; }
+  .myth-box .label { font-size: .78rem; font-weight: 700; color: #fca5a5; letter-spacing: .08em; margin-bottom: 8px; }
+  .myth-box p { color: #fca5a5; font-size: .9rem; line-height: 1.55; }
+  .fact-box { background: #052e16; border: 1px solid #15803d; }
+  .fact-box .label { font-size: .78rem; font-weight: 700; color: #86efac; letter-spacing: .08em; margin-bottom: 8px; }
+  .fact-box p { color: #86efac; font-size: .9rem; line-height: 1.55; }
+
+  /* Pills */
+  .pill-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .pill {
+    border-radius: 20px; padding: 6px 14px; font-size: .85rem; font-weight: 600;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .pill-blue   { background: #1e3a8a; color: #bfdbfe; }
+  .pill-green  { background: #14532d; color: #bbf7d0; }
+  .pill-amber  { background: #78350f; color: #fde68a; }
+  .pill-purple { background: #3b0764; color: #e9d5ff; }
+  .pill-red    { background: #450a0a; color: #fecaca; }
+
+  /* Equation */
+  .eq-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 24px;
+    text-align: center; font-size: 1.15rem; font-weight: 700; color: #fff;
+    letter-spacing: .02em; line-height: 1.6;
+  }
+  .eq-box .eq-label { font-size: .78rem; color: var(--muted); font-weight: 400; margin-top: 6px; }
+
+  /* References slide */
+  .ref-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+  .ref-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+  }
+  .ref-card .ref-type { font-size: .72rem; color: var(--muted); margin-bottom: 4px; letter-spacing: .05em; }
+  .ref-card .ref-title { font-size: .88rem; color: #e2e8f0; font-weight: 600; margin-bottom: 4px; }
+  .ref-card .ref-url { font-size: .75rem; color: #60a5fa; word-break: break-all; }
+
+  /* ── Nav buttons ── */
+  #nav {
+    position: fixed; bottom: 24px;
+    display: flex; align-items: center; gap: 12px; z-index: 100;
+  }
+  .nav-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); font-size: 1.2rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .2s, transform .15s;
+  }
+  .nav-btn:hover { background: var(--accent); transform: scale(1.08); }
+  .nav-btn:disabled { opacity: .3; cursor: not-allowed; transform: none; }
+  #slide-dots { display: flex; gap: 6px; }
+  .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--border); transition: background .25s, transform .25s;
+    cursor: pointer;
+  }
+  .dot.active { background: var(--accent); transform: scale(1.4); }
+
+  /* Responsive tweak */
+  @media (max-width: 600px) {
+    .slide { padding: 56px 20px 76px; }
+    .myth-wrap { grid-template-columns: 1fr; }
+    .ref-grid  { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Progress -->
+<div id="progress-wrap"><div id="progress-bar"></div></div>
+<div id="counter"></div>
+
+<!-- Slides viewport -->
+<div id="viewport">
+
+  <!-- ① Cover -->
+  <div class="slide slide-cover active" data-index="0">
+    <div class="kicker">健康知識入門系列</div>
+    <h1>健身與飲食<br>完整入門指南</h1>
+    <p class="subtitle">從熱量平衡、蛋白質攝取、到運動前後飲食時機——<br>用科學角度建立屬於你的健身飲食策略。</p>
+    <div style="margin-top:36px; display:flex; gap:14px; flex-wrap:wrap; justify-content:center;">
+      <span class="pill pill-blue">🔥 熱量平衡</span>
+      <span class="pill pill-green">💪 蛋白質</span>
+      <span class="pill pill-amber">⚡ 肝醣能量</span>
+      <span class="pill pill-purple">⏱️ 營養時機</span>
+    </div>
+    <p style="margin-top:40px; color:var(--muted); font-size:.82rem;">← → 鍵盤或下方按鈕切換頁面</p>
+  </div>
+
+  <!-- ② Section: 大框架 -->
+  <div class="slide slide-section" data-index="1">
+    <div class="section-num">Part 01</div>
+    <h2>先搞懂一個核心公式</h2>
+    <p class="section-desc">在聊蛋白質、補充劑之前，先理解身體的「能量帳本」——所有體重變化都從這裡開始。</p>
+  </div>
+
+  <!-- ③ 三七法則 -->
+  <div class="slide" data-index="2">
+    <div class="content-wrap">
+      <div class="slide-title">「三分練、<span>七分吃</span>」不是口號</div>
+      <div class="highlight" style="margin-bottom:20px;">
+        運動提供身體的「刺激與破壞」，讓肌肉知道需要變強；<br>
+        但<strong>修復、合成、以及脂肪燃燒的原料</strong>，全部來自你吃進去的食物。<br><br>
+        換句話說：你可以用飲食決定「要胖還是瘦、要有肌肉還是軟爛」，運動只是加速這個過程的槓桿。
+      </div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-icon">🏋️</div>
+          <h3>運動的角色（3 分）</h3>
+          <p>製造肌肉生長的刺激信號、提高基礎代謝、消耗熱量</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🍽️</div>
+          <h3>飲食的角色（7 分）</h3>
+          <p>提供修復原料（蛋白質）、決定總熱量方向、影響身體組成</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">⚖️</div>
+          <h3>兩者缺一不可</h3>
+          <p>只練不吃好 → 肌肉沒材料長；只吃不練 → 體重改變但不改造身材</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ 熱量平衡 -->
+  <div class="slide" data-index="3">
+    <div class="content-wrap">
+      <div class="slide-title"><span>熱量平衡</span>：所有體重變化的基本法則</div>
+      <div class="eq-box" style="margin-bottom:22px;">
+        攝取熱量 &nbsp;－&nbsp; 消耗熱量 &nbsp;＝&nbsp; 能量差異
+        <div class="eq-label">正值 → 體重增加 ｜ 負值 → 體重減輕 ｜ 趨近零 → 維持</div>
+      </div>
+      <div class="num-grid">
+        <div class="num-card">
+          <div class="num">BMR</div>
+          <div class="label"><strong>基礎代謝率</strong><br>躺著不動也會消耗的熱量（維持呼吸、心跳、體溫）</div>
+        </div>
+        <div class="num-card">
+          <div class="num">TDEE</div>
+          <div class="label"><strong>每日總消耗</strong><br>BMR ＋ 活動量 ＋ 食物消化熱效應</div>
+        </div>
+        <div class="num-card">
+          <div class="num" style="color:#86efac;">盈餘</div>
+          <div class="label"><strong>增肌期</strong><br>TDEE +200～500 kcal<br>搭配重訓 → 長肌肉</div>
+        </div>
+        <div class="num-card">
+          <div class="num" style="color:#fca5a5;">赤字</div>
+          <div class="label"><strong>減脂期</strong><br>TDEE −300～500 kcal<br>熱量下限：每日不低於<br><strong style="color:#fca5a5;">1,200 大卡</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑤ 為何不能無限制赤字 -->
+  <div class="slide" data-index="4">
+    <div class="content-wrap">
+      <div class="slide-title">赤字越大越好？<span>不對</span>！</div>
+      <div class="highlight red" style="margin-bottom:16px;">
+        ⚠️ 每日熱量低於 <strong>1,200 大卡</strong>會發生什麼？
+      </div>
+      <ul class="steps">
+        <li>
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>身體進入「飢餓模式」</h4>
+            <p>代謝下調、感到飢餓疲勞，訓練品質大幅下降，更難持續</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>蛋白質攝取不足 → 肌肉流失</h4>
+            <p>身體找不到足夠熱量時，會分解你辛苦練出來的肌肉來供能（稱為糖質新生）</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>溜溜球效應</h4>
+            <p>短期快速掉重 → 恢復飲食後反彈 → 因為肌肉少了，基礎代謝更低了</p>
+          </div>
+        </li>
+      </ul>
+      <div class="highlight green" style="margin-top:16px;">
+        ✅ 正確做法：以 TDEE 為基準，每日製造 300–500 kcal 的適度赤字，配合高蛋白飲食
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑥ Section: 蛋白質 -->
+  <div class="slide slide-section" data-index="5">
+    <div class="section-num">Part 02</div>
+    <h2>蛋白質：肌肉的建材</h2>
+    <p class="section-desc">你到底應該吃多少蛋白質？從哪裡吃？什麼時候吃？</p>
+  </div>
+
+  <!-- ⑦ 蛋白質功能 -->
+  <div class="slide" data-index="6">
+    <div class="content-wrap">
+      <div class="slide-title">蛋白質在身體裡做什麼？</div>
+      <div class="highlight" style="margin-bottom:20px;">
+        蛋白質由<strong>胺基酸</strong>組成，其中有 9 種「必需胺基酸（EAA）」身體無法自行合成，<strong>只能從食物中攝取</strong>。<br><br>
+        其中 <strong>亮氨酸（Leucine）</strong>是觸發肌肉蛋白質合成（MPS）的關鍵開關。
+      </div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-icon">🧱</div>
+          <h3>肌肉合成（MPS）</h3>
+          <p>運動後提供胺基酸，修復受損肌纖維、促進肌肉生長</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🛡️</div>
+          <h3>防止肌肉流失</h3>
+          <p>減脂期熱量不足時，足夠蛋白質讓身體優先燃脂而非分解肌肉</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🫙</div>
+          <h3>提升飽足感</h3>
+          <p>蛋白質的消化熱效應（TEF）最高，消化過程本身就消耗更多熱量</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑧ 蛋白質數字 -->
+  <div class="slide" data-index="7">
+    <div class="content-wrap">
+      <div class="slide-title">每天要吃多少<span>蛋白質</span>？</div>
+      <div class="num-grid" style="margin-bottom:20px;">
+        <div class="num-card">
+          <div class="num">1.1<small style="font-size:1rem;">g</small></div>
+          <div class="label">一般成人（無規律訓練）<br>每公斤體重 × 1.1 g / 天</div>
+        </div>
+        <div class="num-card">
+          <div class="num" style="color:#86efac;">1.6–2.2<small style="font-size:.9rem;">g</small></div>
+          <div class="label">有規律訓練 / 積極增肌<br>每公斤體重 × 1.6–2.2 g / 天</div>
+        </div>
+        <div class="num-card">
+          <div class="num" style="color:#fde68a;">0.2–0.4<small style="font-size:.9rem;">g</small></div>
+          <div class="label">運動後單次補充建議<br>每公斤體重 × 0.2–0.4 g<br>（來源：中國醫藥大學附設醫院）</div>
+        </div>
+      </div>
+      <div class="highlight amber">
+        📝 <strong>實際換算（體重 60 kg 的訓練者）：</strong><br>
+        每日目標 = 60 × 1.6 ~ 2.2 = <strong>96–132 g 蛋白質</strong><br>
+        運動後補充 = 60 × 0.2 ~ 0.4 = <strong>12–24 g 蛋白質</strong>（相當於 2–4 顆雞蛋）
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑨ 蛋白質食物 -->
+  <div class="slide" data-index="8">
+    <div class="content-wrap">
+      <div class="slide-title"><span>優質蛋白質</span>食物清單</div>
+      <table>
+        <thead>
+          <tr><th>食物</th><th>分類</th><th>特點</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>🍗 去皮雞胸肉</td><td><span class="tag tag-h">動物性</span></td><td>低脂、高蛋白，每 100g 約含 31g 蛋白質</td></tr>
+          <tr><td>🥚 雞蛋</td><td><span class="tag tag-h">動物性</span></td><td>完整必需胺基酸，吸收率高，1 顆約 6g 蛋白質</td></tr>
+          <tr><td>🐟 鮭魚 / 鯖魚</td><td><span class="tag tag-h">動物性</span></td><td>含優質 Omega-3 脂肪酸，兼顧蛋白質與好油脂</td></tr>
+          <tr><td>🥛 鮮乳 / 無糖優格</td><td><span class="tag tag-h">動物性</span></td><td>含乳清蛋白，吸收快，運動後理想補充</td></tr>
+          <tr><td>🫘 豆腐 / 毛豆 / 豆漿</td><td><span class="tag tag-m">植物性</span></td><td>適合素食者；毛豆含完整 EAA</td></tr>
+          <tr><td>🌾 藜麥</td><td><span class="tag tag-m">植物性</span></td><td>少數含完整必需胺基酸的植物來源，兼具碳水</td></tr>
+          <tr><td>❌ 香腸 / 火腿 / 培根</td><td><span class="tag tag-w">避免</span></td><td>高鈉高脂加工肉品，蛋白質含量低且雜質多</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ⑩ Section: 碳水與肝醣 -->
+  <div class="slide slide-section" data-index="9">
+    <div class="section-num">Part 03</div>
+    <h2>碳水化合物與肝醣</h2>
+    <p class="section-desc">碳水是運動的燃料，不是敵人。了解肝醣，你就知道為什麼訓練前後都要吃碳水。</p>
+  </div>
+
+  <!-- ⑪ 肝醣是什麼 -->
+  <div class="slide" data-index="10">
+    <div class="content-wrap">
+      <div class="slide-title"><span>肝醣</span>：你的運動燃料槽</div>
+      <div class="highlight" style="margin-bottom:18px;">
+        肝醣（Glycogen）是碳水化合物在體內的儲存形式，由多個葡萄糖分子聚合而成。<br>
+        主要儲存在<strong>肝臟（約 100g）</strong>與<strong>肌肉（約 400g）</strong>。
+      </div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-icon">⛽</div>
+          <h3>高強度運動的主要燃料</h3>
+          <p>重訓、HIIT、快跑等 &gt;70% 強度的運動，主要靠肝醣供能</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📉</div>
+          <h3>肝醣耗盡的後果</h3>
+          <p>訓練強度驟降、感到「撞牆」、身體可能分解肌肉來救急（糖質新生）</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔋</div>
+          <h3>如何補充肝醣</h3>
+          <p>吃碳水化合物 → 消化成葡萄糖 → 儲存進肝臟與肌肉 → 訓練時釋放供能</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑫ 碳水食物分類 -->
+  <div class="slide" data-index="11">
+    <div class="content-wrap">
+      <div class="slide-title">碳水化合物的兩種類型</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+        <div class="card">
+          <div class="card-icon">🐢</div>
+          <h3>複合型碳水（慢消化）</h3>
+          <p style="margin-bottom:10px; color:var(--muted);">穩定提供能量，不快速升血糖</p>
+          <div class="pill-row">
+            <span class="pill pill-green">燕麥</span>
+            <span class="pill pill-green">糙米</span>
+            <span class="pill pill-green">地瓜</span>
+            <span class="pill pill-green">全穀麵包</span>
+            <span class="pill pill-green">馬鈴薯</span>
+          </div>
+          <p style="margin-top:10px; font-size:.82rem; color:var(--muted);">適合：訓練前 1–3 小時的正餐</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <h3>簡單型碳水（快消化）</h3>
+          <p style="margin-bottom:10px; color:var(--muted);">快速轉化為能量，迅速補充肝醣</p>
+          <div class="pill-row">
+            <span class="pill pill-amber">香蕉</span>
+            <span class="pill pill-amber">蜂蜜</span>
+            <span class="pill pill-amber">運動飲料</span>
+            <span class="pill pill-amber">白飯</span>
+          </div>
+          <p style="margin-top:10px; font-size:.82rem; color:var(--muted);">適合：訓練前 30 分鐘內、或訓練後黃金期</p>
+        </div>
+      </div>
+      <div class="highlight green">
+        💡 碳水是肌肉運動的「優先燃料」。適度攝取碳水 ≠ 發胖，重點是<strong>總熱量控制</strong>和<strong>時機</strong>。
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑬ Section: 運動前後飲食 -->
+  <div class="slide slide-section" data-index="12">
+    <div class="section-num">Part 04</div>
+    <h2>運動前、中、後怎麼吃？</h2>
+    <p class="section-desc">正確的飲食時機能讓同樣的訓練量，帶來更好的肌肉增長與脂肪燃燒效果。</p>
+  </div>
+
+  <!-- ⑭ 訓練前 -->
+  <div class="slide" data-index="13">
+    <div class="content-wrap">
+      <div class="slide-title">訓練<span>前</span>：儲備燃料，防止肌肉消耗</div>
+      <table style="margin-bottom:16px;">
+        <thead><tr><th>距離運動</th><th>建議吃什麼</th><th>為什麼</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>1–3 小時前</td>
+            <td>複合碳水 ＋ 少量蛋白質<br><small style="color:var(--muted)">燕麥粥、地瓜飯糰、全麥吐司加蛋</small></td>
+            <td>穩定提供肝醣，訓練時能量不中斷</td>
+          </tr>
+          <tr>
+            <td>15–30 分鐘前<br><small style="color:var(--muted)">（前面沒吃時）</small></td>
+            <td>碳水:蛋白質 ≈ <strong>3–4 : 1</strong><br><small style="color:var(--muted)">約 100–200 大卡</small><br><small style="color:var(--muted)">例：香蕉 ＋ 240ml 低脂牛奶</small></td>
+            <td>快速補充肝醣、提供少量胺基酸防肌肉分解</td>
+          </tr>
+          <tr>
+            <td>前幾天飲食正常<br>＋ 運動 &lt;60 分鐘</td>
+            <td>只需補水 💧</td>
+            <td>肝醣存量充足，不需要額外補充</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="highlight" style="font-size:.88rem;">
+        ⚠️ <strong>避免</strong>在運動前吃高脂肪、高纖維食物（如油炸物、大量生菜沙拉），消化慢、容易腸胃不適
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑮ 訓練中 -->
+  <div class="slide" data-index="14">
+    <div class="content-wrap">
+      <div class="slide-title">訓練<span>中</span>：維持電解質，延緩疲勞</div>
+      <div class="cards" style="margin-bottom:20px;">
+        <div class="card">
+          <div class="card-icon">⏱️</div>
+          <h3>60 分鐘以內</h3>
+          <p>補水就好。一般重訓時間短，肝醣通常夠用，不需要喝含糖飲料</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🏃</div>
+          <h3>60 分鐘以上（高強度）</h3>
+          <p>每小時補充 <strong>30–60g 碳水</strong>（運動飲料、果凝膠）維持血糖與運動表現</p>
+        </div>
+      </div>
+      <div class="highlight amber">
+        💡 <strong>碳水化合物漱口法（進階技巧）</strong><br>
+        含一口含糖飲料在嘴裡但不喝下去，刺激口腔神經傳遞大腦「有能量」的信號，幫助維持訓練強度——適合不想攝取額外熱量的人。
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑯ 訓練後 -->
+  <div class="slide" data-index="15">
+    <div class="content-wrap">
+      <div class="slide-title">訓練<span>後</span>：黃金修復期</div>
+      <div class="highlight green" style="margin-bottom:16px;">
+        ⏰ <strong>運動後前 30–60 分鐘</strong>，肌肉對碳水吸收效率最高（GLUT4 轉運蛋白上調），蛋白質合成信號也最強。把握這個時間點！
+      </div>
+      <div class="num-grid" style="margin-bottom:16px;">
+        <div class="num-card">
+          <div class="num" style="color:#86efac;">碳水</div>
+          <div class="label">每公斤體重 1–1.2 g<br>60 kg 的人 ≈ 60–72g<br><small>（相當於一個飯糰的白飯量）</small></div>
+        </div>
+        <div class="num-card">
+          <div class="num" style="color:#60a5fa;">蛋白質</div>
+          <div class="label">每公斤體重 0.2–0.4 g<br>60 kg 的人 ≈ 12–24g<br><small>（相當於 2–4 顆雞蛋）</small></div>
+        </div>
+      </div>
+      <div class="highlight" style="font-size:.88rem;">
+        📌 <strong>懶人方案</strong>：運動後不想額外計算，直接吃一頓正常均衡的正餐（蔬菜 ＋ 蛋白質 ＋ 主食）就能達到目的！
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑰ Section: 迷思破解 -->
+  <div class="slide slide-section" data-index="16">
+    <div class="section-num">Part 05</div>
+    <h2>常見迷思破解</h2>
+    <p class="section-desc">這些你可能聽過的「健身常識」，有些是真的，有些讓你白費力氣。</p>
+  </div>
+
+  <!-- ⑱ 空腹運動迷思 -->
+  <div class="slide" data-index="17">
+    <div class="content-wrap">
+      <div class="slide-title">迷思 1：空腹運動燃脂效果更好？</div>
+      <div class="myth-wrap" style="margin-bottom:20px;">
+        <div class="myth-box">
+          <div class="label">❌ 迷思</div>
+          <p>空腹跑步、空腹重訓，讓身體「逼不得已」只能燃燒脂肪，所以效果更好！</p>
+        </div>
+        <div class="fact-box">
+          <div class="label">✅ 事實（來源：中國醫藥大學附設醫院營養師）</div>
+          <p>空腹導致肝醣不足，高強度訓練能力大幅下降。為了維持供能，身體反而會<strong>分解肌肉</strong>（糖質新生）來產生葡萄糖！</p>
+        </div>
+      </div>
+      <div class="highlight">
+        💡 低強度輕鬆散步可以空腹；但中高強度訓練（重訓、HIIT）請在前 1–3 小時先補充碳水，保護肌肉、維持訓練效率。
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑲ 蛋白質迷思 -->
+  <div class="slide" data-index="18">
+    <div class="content-wrap">
+      <div class="slide-title">迷思 2：蛋白質多多益善？</div>
+      <div class="myth-wrap" style="margin-bottom:20px;">
+        <div class="myth-box">
+          <div class="label">❌ 迷思</div>
+          <p>蛋白質有益肌肉，就算吃到每天 4–5 g/kg 也沒關係，越多越好！</p>
+        </div>
+        <div class="fact-box">
+          <div class="label">✅ 事實</div>
+          <p>超過身體需求的蛋白質，依然會被轉化為熱量或脂肪儲存。現有研究指出訓練者的有效範圍是 <strong>1.6–2.2 g/kg/day</strong>，超過這個量額外益處有限。</p>
+        </div>
+      </div>
+      <div class="highlight amber">
+        ⚠️ 長期極高蛋白（>3 g/kg）對腎臟健康的長期影響目前仍在研究中，建議維持在合理範圍。
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑳ 增肌減脂迷思 -->
+  <div class="slide" data-index="19">
+    <div class="content-wrap">
+      <div class="slide-title">迷思 3：增肌和減脂可以<span>同時</span>進行？</div>
+      <div class="myth-wrap" style="margin-bottom:16px;">
+        <div class="myth-box">
+          <div class="label">❌ 過度期待</div>
+          <p>只要努力練、認真吃，幾個月就能大幅增肌同時大幅減脂！</p>
+        </div>
+        <div class="fact-box">
+          <div class="label">✅ 更接近事實</div>
+          <p>增肌需要熱量盈餘；減脂需要熱量赤字。同時進行（Body Recomposition）在<strong>訓練新手</strong>或長期休息後復訓者身上較有可能，但效率遠低於分開進行。</p>
+        </div>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-icon">📈</div>
+          <h3>增肌期（Bulking）</h3>
+          <p>熱量盈餘 ＋ 高強度阻力訓練 ＋ 高蛋白質，專注讓肌肉生長</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📉</div>
+          <h3>減脂期（Cutting）</h3>
+          <p>適度熱量赤字 ＋ 高蛋白質（防肌肉流失）＋ 維持訓練強度</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ㉑ Section: 實用建議 -->
+  <div class="slide slide-section" data-index="20">
+    <div class="section-num">Part 06</div>
+    <h2>整合成可執行的日常建議</h2>
+    <p class="section-desc">把前面所有知識點濃縮成幾個可以今天就開始做的行動。</p>
+  </div>
+
+  <!-- ㉒ 實用行動清單 -->
+  <div class="slide" data-index="21">
+    <div class="content-wrap">
+      <div class="slide-title">你可以<span>今天就開始</span>的 5 件事</div>
+      <ul class="steps">
+        <li>
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>估算你的 TDEE（每日總消耗）</h4>
+            <p>用線上計算機輸入體重、身高、年齡、活動量，得到你的維持熱量基準</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>設定蛋白質目標：每天體重(kg) × 1.6–2.0 g</h4>
+            <p>先從蛋白質目標下手比從「少吃多動」下手更有效，且飽足感更好</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>訓練前 1–2 小時吃一餐有碳水有蛋白質的食物</h4>
+            <p>燕麥 ＋ 水煮蛋、地瓜 ＋ 雞胸、全麥吐司 ＋ 無糖豆漿都是好選擇</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h4>訓練後 60 分鐘內吃一頓正餐</h4>
+            <p>不用複雜，蔬菜 ＋ 蛋白質食物 ＋ 主食（飯/麵）就是黃金組合</p>
+          </div>
+        </li>
+        <li>
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <h4>熱量不要低於 1,200 大卡</h4>
+            <p>不管目標是增肌還是減脂，過度節食只會讓你更難達到目標</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ㉓ 211 餐盤 -->
+  <div class="slide" data-index="22">
+    <div class="content-wrap">
+      <div class="slide-title"><span>211 餐盤</span>：最簡單的飲食比例</div>
+      <div class="highlight" style="margin-bottom:20px;">
+        不想計算熱量？用 <strong>211 餐盤</strong>法則，每餐用「視覺比例」來控制飲食品質：
+      </div>
+      <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:14px; margin-bottom:20px;">
+        <div class="card" style="border-color:#16a34a; background:#052e16; text-align:center;">
+          <div style="font-size:2.5rem;">🥦</div>
+          <div style="font-size:2rem; font-weight:800; color:#86efac; margin:8px 0;">1/2</div>
+          <h3 style="color:#86efac;">蔬菜</h3>
+          <p style="color:#4ade80;">彩色蔬菜為主，提供纖維與微量營養素，增加飽足感</p>
+        </div>
+        <div class="card" style="border-color:#2563eb; background:#0c1a3a; text-align:center;">
+          <div style="font-size:2.5rem;">🍗</div>
+          <div style="font-size:2rem; font-weight:800; color:#60a5fa; margin:8px 0;">1/4</div>
+          <h3 style="color:#60a5fa;">蛋白質</h3>
+          <p style="color:#93c5fd;">雞胸、魚、蛋、豆腐等優質蛋白質食物</p>
+        </div>
+        <div class="card" style="border-color:#d97706; background:#2d1b00; text-align:center;">
+          <div style="font-size:2.5rem;">🍚</div>
+          <div style="font-size:2rem; font-weight:800; color:#fbbf24; margin:8px 0;">1/4</div>
+          <h3 style="color:#fbbf24;">主食</h3>
+          <p style="color:#fde68a;">優先選擇全穀類（糙米、地瓜、燕麥），提供碳水與纖維</p>
+        </div>
+      </div>
+      <div class="highlight green">
+        🍽️ 加上「<strong>進食順序</strong>」效果更好：先喝水 → 先吃蛋白質與蔬菜 → 最後吃主食與水果，幫助穩定血糖與提升飽足感（來源：立欣診所）
+      </div>
+    </div>
+  </div>
+
+  <!-- ㉔ 參考來源 -->
+  <div class="slide" data-index="23">
+    <div class="content-wrap">
+      <div class="slide-title">參考 <span>Wiki</span> 頁面與資料來源</div>
+      <p style="color:var(--muted); font-size:.85rem; margin-bottom:16px;">本簡報所有內容整理自以下知識庫頁面，均儲存於 <code style="color:#60a5fa;">c:\llm wiki\wiki\</code></p>
+      <div class="ref-grid">
+        <div class="ref-card">
+          <div class="ref-type">📄 論文頁 · High Relevance</div>
+          <div class="ref-title">中國醫藥大學附設醫院：運動前中後飲食策略</div>
+          <div class="ref-url">papers/2024-cmuh-exercise-nutrition-timing</div>
+        </div>
+        <div class="ref-card">
+          <div class="ref-type">📄 論文頁 · High Relevance</div>
+          <div class="ref-title">鮮乳坊：增肌減脂完整攻略</div>
+          <div class="ref-url">papers/2024-bettermilk-muscle-gain-fat-loss</div>
+        </div>
+        <div class="ref-card">
+          <div class="ref-type">📄 論文頁 · High Relevance</div>
+          <div class="ref-title">立欣診所：每日熱量與蛋白質需求</div>
+          <div class="ref-url">papers/2024-lhped-calorie-protein-needs</div>
+        </div>
+        <div class="ref-card">
+          <div class="ref-type">📄 論文頁 · High Relevance</div>
+          <div class="ref-title">馬可健康購：運動前飲食完整指南</div>
+          <div class="ref-url">papers/2024-minimark-pre-exercise-nutrition</div>
+        </div>
+        <div class="ref-card">
+          <div class="ref-type">🧠 概念頁</div>
+          <div class="ref-title">Protein Intake / Nutrient Timing / Energy Balance / Glycogen</div>
+          <div class="ref-url">concepts/protein-intake · concepts/nutrient-timing · concepts/energy-balance · concepts/glycogen</div>
+        </div>
+        <div class="ref-card">
+          <div class="ref-type">🗂️ 主題頁</div>
+          <div class="ref-title">Protein Nutrition · Peri-workout Nutrition</div>
+          <div class="ref-url">topics/protein-nutrition · topics/peri-workout-nutrition</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ㉕ End -->
+  <div class="slide slide-cover" data-index="24" style="background: radial-gradient(ellipse at 60% 40%, #064e3b 0%, #0f172a 65%);">
+    <div class="kicker" style="color:#6ee7b7;">簡報結束</div>
+    <h1 style="color:#fff;">從今天開始<br><span style="color:#34d399;">把知識變成習慣</span></h1>
+    <p class="subtitle">記住三件事：<br>
+      <strong style="color:#6ee7b7;">足夠蛋白質</strong>　·　<strong style="color:#fbbf24;">適當熱量</strong>　·　<strong style="color:#818cf8;">把握時機</strong><br><br>
+      LLM Wiki 知識庫持續更新中 🌱
+    </p>
+  </div>
+
+</div><!-- /viewport -->
+
+<!-- Navigation -->
+<div id="nav">
+  <button class="nav-btn" id="btn-prev" onclick="go(-1)" disabled>‹</button>
+  <div id="slide-dots"></div>
+  <button class="nav-btn" id="btn-next" onclick="go(1)">›</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total  = slides.length;
+  let cur = 0;
+
+  /* Build dots */
+  const dotsEl = document.getElementById('slide-dots');
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => go(i - cur);
+    dotsEl.appendChild(d);
+  });
+
+  function go(dir) {
+    const next = cur + dir;
+    if (next < 0 || next >= total) return;
+
+    /* Animate out */
+    slides[cur].classList.remove('active');
+    slides[cur].classList.add(dir > 0 ? 'exit-left' : '');
+    setTimeout(() => slides[cur].classList.remove('exit-left'), 420);
+
+    cur = next;
+    slides[cur].classList.add('active');
+
+    /* Progress bar */
+    document.getElementById('progress-bar').style.width = ((cur / (total - 1)) * 100) + '%';
+
+    /* Counter */
+    document.getElementById('counter').textContent = (cur + 1) + ' / ' + total;
+
+    /* Dots */
+    document.querySelectorAll('.dot').forEach((d, i) =>
+      d.classList.toggle('active', i === cur));
+
+    /* Buttons */
+    document.getElementById('btn-prev').disabled = cur === 0;
+    document.getElementById('btn-next').disabled = cur === total - 1;
+  }
+
+  /* Init state */
+  document.getElementById('progress-bar').style.width = (1 / total * 100) + '%';
+  document.getElementById('counter').textContent = '1 / ' + total;
+
+  /* Keyboard */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown'  || e.key === ' ') { e.preventDefault(); go(1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                     { e.preventDefault(); go(-1); }
+  });
+
+  /* Touch swipe */
+  let tx = 0;
+  document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend',   e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+  }, { passive: true });
+</script>
+</body>
+</html>
